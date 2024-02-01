@@ -18,7 +18,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven("https://mycrocast-maven-repo.s3.eu-central-1.amazonaws.com")
+        maven("https://mycrocast-maven-repo.s3.eu-central-1.amazonaws.com/android")
     }
 }
 
