@@ -1,7 +1,11 @@
 # RaydioSDK for UEFA
-An example application for Android showing how to use the UEFA-RaydioSDK.
+An example application for Android showing the usage of the RaydioSDK specially developed for UEFA.
 
-# Introduction - About Raydio
+## Introduction - About Raydio
 Raydio is a project developed by mycrocast GmbH to achieve live audio streaming with very low latency. It's primarely used to stream events in an inclusive and descriptive way to include everyone. Therefore it was designed to be as easy as possible to integrate and to use with minimal effort and nearly no hardware.
 
-# Setup
+## Setup
+TODO
+
+## How to implement & Documentation
+For further steps as well as documentation navigate to the [wiki]("todo").
