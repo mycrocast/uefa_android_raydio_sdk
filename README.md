@@ -8,4 +8,4 @@ Raydio is a project developed by mycrocast GmbH to achieve live audio streaming 
 TODO
 
 ## Integration
-For further steps visit the [wiki](https://github.com/mycrocast/uefa_android_raydio_sdk/wiki) for the documentation.
+For more information about the sdk itself and the integration of it into your application visit the [documentation](https://mycrocast.github.io/uefa_android_raydio_sdk/).
