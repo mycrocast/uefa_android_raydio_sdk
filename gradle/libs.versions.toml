@@ -1,5 +1,5 @@
 [versions]
-agp = "8.4.0-alpha07"
+agp = "8.4.0-alpha09"
 hiltAndroid = "2.49"
 hiltNavigationCompose = "1.1.0"
 kotlin = "1.9.0"
@@ -11,7 +11,7 @@ lifecycleRuntimeKtx = "2.7.0"
 activityCompose = "1.8.2"
 composeBom = "2023.08.00"
 material3 = "1.2.0-beta01"
-raydio = "1.0"
+raydio = "1.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -31,7 +31,7 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3"}
-raydio = { module = "de.mycrocast:raydio", version.ref = "raydio" }
+raydio = { module = "de.mycrocast.uefa:raydio", version.ref = "raydio" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
