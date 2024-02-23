@@ -18,7 +18,7 @@ class LivestreamIntentReceiver(
     companion object {
         // since android 14 (api level 34) we need to include the package name in custom intents to receive them,
         // if we are registering them as RECEIVER_NOT_EXPORTED.
-        private const val PACKAGE_NAME = "de.mycrocast.raydio.uefa.example"
+        private const val PACKAGE_NAME = "de.mycrocast.uefa.raydiosdk.example"
         private const val STOP_LISTEN_ACTION = "$PACKAGE_NAME.STOP_LISTEN"
 
         /**
