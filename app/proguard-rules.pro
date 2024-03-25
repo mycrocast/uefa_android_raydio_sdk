@@ -19,3 +19,11 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+#For WebRTC
+-keep class org.webrtc.** { *; }
+-keep interface org.webrtc.** { *; }
+
+#For Mediasoup
+-keep class org.mediasoup.** { *; }
+-keep interface org.mediasoup.** { *; }
