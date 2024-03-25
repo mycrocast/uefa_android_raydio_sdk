@@ -420,7 +420,12 @@ class LivestreamPlayService : Service() {
      * Stops this foreground service and removes the foreground notification.
      */
     private fun stopService() {
-        this.stopForeground(STOP_FOREGROUND_REMOVE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            this.stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+            this.stopForeground(true)
+        }
+
         this.stopSelf()
     }
 
