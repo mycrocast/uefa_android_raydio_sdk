@@ -19,7 +19,7 @@ class LivestreamNotificationBuilder(
     private val builder: NotificationCompat.Builder = NotificationCompat.Builder(this.context, channelId)
 
     init {
-        builder.setSmallIcon(R.drawable.ic_launcher_foreground)
+        builder.setSmallIcon(R.drawable.ic_notification)
     }
 
     /**
