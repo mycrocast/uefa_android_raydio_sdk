@@ -196,7 +196,12 @@ class LivestreamPlayService : Service() {
 
         // create and register the intent receiver
         intentReceiver = LivestreamIntentReceiver { stopService() }
-        ContextCompat.registerReceiver(this, intentReceiver, intentReceiver.filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        ContextCompat.registerReceiver(
+            this,
+            intentReceiver,
+            intentReceiver.filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
 
         observeConnectionState = ioScope.launch {
             connection.currentState.collect {
@@ -208,8 +213,12 @@ class LivestreamPlayService : Service() {
                     isClientConnectionLost = true
 
                     if (checkPostNotificationPermission()) {
-                        val notification = notificationBuilder.createClientConnectionLostNotification()
-                        notificationManager.notify(CLIENT_CONNECTION_LOST_NOTIFICATION_ID, notification)
+                        val notification =
+                            notificationBuilder.createClientConnectionLostNotification()
+                        notificationManager.notify(
+                            CLIENT_CONNECTION_LOST_NOTIFICATION_ID,
+                            notification
+                        )
                     }
 
                     player.stop()
@@ -257,7 +266,10 @@ class LivestreamPlayService : Service() {
      */
     private fun checkPostNotificationPermission(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            return ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            return ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
         }
 
         // no need to check permission for android api lower than 33
@@ -436,7 +448,10 @@ class LivestreamPlayService : Service() {
      */
     private fun updateLivestreamNotification(livestream: RaydioLivestream) {
         if (checkPostNotificationPermission()) {
-            val notification = notificationBuilder.createLivestreamNotification(livestream.title, livestream.language.native)
+            val notification = notificationBuilder.createLivestreamNotification(
+                livestream.title,
+                livestream.language.native
+            )
             notificationManager.notify(LIVESTREAM_NOTIFICATION_ID, notification)
             return
         }
@@ -453,7 +468,9 @@ class LivestreamPlayService : Service() {
         unregisterReceiver(intentReceiver)
 
         // ensure playing process is stopped
-        player.stop()
+        if (::player.isInitialized) {
+            player.stop()
+        }
 
         // change current play state accordingly
         ioScope.launch {
