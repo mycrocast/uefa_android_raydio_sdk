@@ -1,7 +1,6 @@
 package de.mycrocast.uefa.raydiosdk.example.livestream.list
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -11,14 +10,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,19 +39,7 @@ fun LivestreamListScreen(
     val playState = uiState.value.playState
 
     // current pull refresh state
-    val pullRefreshState = rememberPullToRefreshState()
-    if (pullRefreshState.isRefreshing) {
-        LaunchedEffect(true) {
-            viewModel.onRefreshList()
-        }
-    }
-
-    // "binds" pull refresh animation to our isRefreshing state
-    if (isRefreshing) {
-        pullRefreshState.startRefresh()
-    } else {
-        pullRefreshState.endRefresh()
-    }
+    val state = rememberPullToRefreshState()
 
     // show an initial loading animation in the center and nothing else if initial loading
     if (isLoading) {
@@ -67,10 +52,11 @@ fun LivestreamListScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .nestedScroll(pullRefreshState.nestedScrollConnection)
-                .padding(innerPadding)
+        PullToRefreshBox(
+            modifier = Modifier.padding(innerPadding),
+            state = state,
+            isRefreshing = isRefreshing,
+            onRefresh = viewModel::onRefreshList
         ) {
             LazyColumn(Modifier.fillMaxSize()) {
                 items(livestreamGroups) { group ->
@@ -82,26 +68,21 @@ fun LivestreamListScreen(
                     }
                 }
             }
+        }
 
-            if (livestreamGroups.isEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(8.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "There are currently no livestreams available.",
-                        textAlign = TextAlign.Center
-                    )
-                }
+        if (livestreamGroups.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "There are currently no livestreams available.",
+                    textAlign = TextAlign.Center
+                )
             }
-
-            PullToRefreshContainer(
-                modifier = Modifier.align(Alignment.TopCenter),
-                state = pullRefreshState
-            )
         }
     }
 

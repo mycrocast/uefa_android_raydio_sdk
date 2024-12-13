@@ -4,16 +4,17 @@ plugins {
 
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
     namespace = "de.mycrocast.uefa.raydiosdk.example"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "de.mycrocast.uefa.raydiosdk.example"
         minSdk = 23
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0.2"
 
