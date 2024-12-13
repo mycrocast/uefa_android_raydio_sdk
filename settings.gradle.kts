@@ -17,6 +17,7 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
+        mavenLocal()
         mavenCentral()
         maven("https://mycrocast-maven-repo.s3.eu-central-1.amazonaws.com/android")
     }

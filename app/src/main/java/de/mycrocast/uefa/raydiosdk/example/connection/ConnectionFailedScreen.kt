@@ -12,7 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import de.mycrocast.raydio.uefa.sdk.connection.domain.RaydioConnection
+import de.mycrocast.android.play_by_ear.sdk.connection.domain.PlayByEarConnection
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -44,7 +44,7 @@ fun ConnectionFailedScreen(
  */
 @HiltViewModel
 class ConnectionFailedViewModel @Inject constructor(
-    private val connection: RaydioConnection
+    private val connection: PlayByEarConnection
 ) : ViewModel() {
 
     fun retryConnect() {

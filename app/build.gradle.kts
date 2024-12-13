@@ -65,7 +65,7 @@ android {
 }
 
 dependencies {
-    implementation(libs.raydio)
+    implementation(libs.play.by.ear)
 
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)

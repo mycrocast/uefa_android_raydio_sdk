@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import de.mycrocast.android.play_by_ear.sdk.livestream.loader.domain.PlayByEarLivestreamLoader
 import de.mycrocast.raydio.uefa.sdk.livestream.container.domain.RaydioLivestreamGroupContainer
 import de.mycrocast.raydio.uefa.sdk.livestream.domain.RaydioLivestream
 import de.mycrocast.raydio.uefa.sdk.livestream.domain.RaydioLivestreamGroup
@@ -30,7 +31,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class LivestreamListViewModel @Inject constructor(
-    private val loader: RaydioLivestreamLoader,
+    private val loader: PlayByEarLivestreamLoader,
     private val container: RaydioLivestreamGroupContainer,
     private val playStateContainer: PlayStateContainer,
     @ApplicationContext private val context: Context

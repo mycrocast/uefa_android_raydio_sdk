@@ -14,11 +14,11 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
-import de.mycrocast.raydio.uefa.sdk.connection.domain.RaydioConnection
+import de.mycrocast.android.play_by_ear.sdk.connection.domain.PlayByEarConnection
+import de.mycrocast.android.play_by_ear.sdk.livestream.loader.domain.PlayByEarLivestreamLoader
+import de.mycrocast.android.play_by_ear.sdk.livestream.player.domain.PlayByEarLivestreamPlayer
 import de.mycrocast.raydio.uefa.sdk.livestream.container.domain.RaydioLivestreamGroupContainer
 import de.mycrocast.raydio.uefa.sdk.livestream.domain.RaydioLivestream
-import de.mycrocast.raydio.uefa.sdk.livestream.loader.domain.RaydioLivestreamLoader
-import de.mycrocast.raydio.uefa.sdk.livestream.player.domain.RaydioLivestreamPlayer
 import de.mycrocast.uefa.raydiosdk.example.livestream.play_state.domain.PlayStateContainer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -115,7 +115,7 @@ class LivestreamPlayService : Service() {
     }
 
     @Inject
-    lateinit var connection: RaydioConnection
+    lateinit var connection: PlayByEarConnection
 
     @Inject
     lateinit var streamContainer: RaydioLivestreamGroupContainer
@@ -124,10 +124,10 @@ class LivestreamPlayService : Service() {
     lateinit var playStateContainer: PlayStateContainer
 
     @Inject
-    lateinit var playerFactory: RaydioLivestreamPlayer.Factory
+    lateinit var playerFactory: PlayByEarLivestreamPlayer.Factory
 
     @Inject
-    lateinit var streamLoader: RaydioLivestreamLoader
+    lateinit var streamLoader: PlayByEarLivestreamLoader
 
     private val ioScope = CoroutineScope(Job() + Dispatchers.IO)
 
@@ -169,7 +169,7 @@ class LivestreamPlayService : Service() {
     /**
      * Used to control the playing process of the livestream.
      */
-    private lateinit var player: RaydioLivestreamPlayer
+    private lateinit var player: PlayByEarLivestreamPlayer
 
     /**
      * Identifier of the streamer of the livestream.
@@ -209,7 +209,7 @@ class LivestreamPlayService : Service() {
                 // - show notification
                 // - stop playing
                 // - try to reconnect
-                if (it == RaydioConnection.State.DISCONNECTED && !isClientConnectionLost) {
+                if (it == PlayByEarConnection.State.DISCONNECTED && !isClientConnectionLost) {
                     isClientConnectionLost = true
 
                     if (checkPostNotificationPermission()) {
@@ -232,7 +232,7 @@ class LivestreamPlayService : Service() {
                 // did we just establish a connection after a connection loss? if yes:
                 // - dismiss notification
                 // - (re-) start playing if possible
-                if (it == RaydioConnection.State.CONNECTED && isClientConnectionLost) {
+                if (it == PlayByEarConnection.State.CONNECTED && isClientConnectionLost) {
                     isClientConnectionLost = false
 
                     notificationManager.cancel(CLIENT_CONNECTION_LOST_NOTIFICATION_ID)
@@ -341,27 +341,27 @@ class LivestreamPlayService : Service() {
         observePlayerState = ioScope.launch {
             player.current.collect { playState ->
                 when (playState) {
-                    is RaydioLivestreamPlayer.PlayState.New -> {
+                    is PlayByEarLivestreamPlayer.PlayState.New -> {
                         // initial state of the player, nothing to do.
                     }
 
-                    is RaydioLivestreamPlayer.PlayState.Connecting -> {
-                        playStateContainer.onConnect(playState.streamId)
+                    is PlayByEarLivestreamPlayer.PlayState.Connecting -> {
+                        playStateContainer.onConnect(playState.streamToken)
                     }
 
-                    is RaydioLivestreamPlayer.PlayState.Playing -> {
-                        playStateContainer.onPlay(playState.streamId)
+                    is PlayByEarLivestreamPlayer.PlayState.Playing -> {
+                        playStateContainer.onPlay(playState.streamToken)
                     }
 
-                    is RaydioLivestreamPlayer.PlayState.Disconnected -> {
-                        playStateContainer.onDisconnect(playState.streamId)
+                    is PlayByEarLivestreamPlayer.PlayState.Disconnected -> {
+                        playStateContainer.onDisconnect(playState.streamToken)
                     }
 
-                    is RaydioLivestreamPlayer.PlayState.Failed -> {
+                    is PlayByEarLivestreamPlayer.PlayState.Failed -> {
                         onConnectionFailed()
                     }
 
-                    is RaydioLivestreamPlayer.PlayState.Closed -> {
+                    is PlayByEarLivestreamPlayer.PlayState.Closed -> {
                         // was the player closed because either the client or the streamer lost their connection?
                         if (isClientConnectionLost || isStreamerConnectionLost) {
                             playStateContainer.onDisconnect(streamId)

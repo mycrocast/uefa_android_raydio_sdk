@@ -3,7 +3,7 @@ package de.mycrocast.uefa.raydiosdk.example
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import de.mycrocast.raydio.uefa.sdk.connection.domain.RaydioConnection
+import de.mycrocast.android.play_by_ear.sdk.connection.domain.PlayByEarConnection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -18,7 +18,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val connection: RaydioConnection
+    private val connection: PlayByEarConnection
 ) : ViewModel() {
 
     /**
@@ -67,10 +67,10 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             connection.currentState.collect { state ->
                 when (state) {
-                    RaydioConnection.State.NEW -> connect()
-                    RaydioConnection.State.CONNECTING -> _uiState.update { it.copy(screen = Screen.CONNECTING) }
-                    RaydioConnection.State.CONNECTED -> _uiState.update { it.copy(screen = Screen.LIVESTREAMS) }
-                    RaydioConnection.State.DISCONNECTED -> _uiState.update { it.copy(screen = Screen.DISCONNECTED) }
+                    PlayByEarConnection.State.NEW -> connect()
+                    PlayByEarConnection.State.CONNECTING -> _uiState.update { it.copy(screen = Screen.CONNECTING) }
+                    PlayByEarConnection.State.CONNECTED -> _uiState.update { it.copy(screen = Screen.LIVESTREAMS) }
+                    PlayByEarConnection.State.DISCONNECTED -> _uiState.update { it.copy(screen = Screen.DISCONNECTED) }
                 }
             }
         }

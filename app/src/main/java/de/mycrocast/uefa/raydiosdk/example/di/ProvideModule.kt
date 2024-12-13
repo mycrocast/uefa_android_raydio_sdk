@@ -8,17 +8,18 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import de.mycrocast.uefa.raydiosdk.example.livestream.play_state.data.MainPlayStateContainer
-import de.mycrocast.uefa.raydiosdk.example.livestream.play_state.domain.PlayStateContainer
-import de.mycrocast.raydio.uefa.sdk.connection.domain.RaydioConnection
-import de.mycrocast.raydio.uefa.sdk.core.data.RaydioSDKBuilder
-import de.mycrocast.raydio.uefa.sdk.core.domain.RaydioSDK
-import de.mycrocast.raydio.uefa.sdk.core.domain.RaydioSDKCredentials
+import de.mycrocast.android.play_by_ear.sdk.connection.domain.PlayByEarConnection
+import de.mycrocast.android.play_by_ear.sdk.core.data.PlayByEarSDKBuilder
+import de.mycrocast.android.play_by_ear.sdk.core.domain.PlayByEarSDK
+import de.mycrocast.android.play_by_ear.sdk.core.domain.PlayByEarSDKCredentials
+import de.mycrocast.android.play_by_ear.sdk.livestream.loader.domain.PlayByEarLivestreamLoader
+import de.mycrocast.android.play_by_ear.sdk.livestream.player.domain.PlayByEarLivestreamPlayer
+import de.mycrocast.android.play_by_ear.sdk.logger.PlayByEarLogger
 import de.mycrocast.raydio.uefa.sdk.livestream.container.domain.RaydioLivestreamGroupContainer
 import de.mycrocast.raydio.uefa.sdk.livestream.loader.domain.RaydioLivestreamLoader
 import de.mycrocast.raydio.uefa.sdk.livestream.player.domain.RaydioLivestreamPlayer
-import de.mycrocast.raydio.uefa.sdk.logger.RaydioInteraction
-import de.mycrocast.raydio.uefa.sdk.logger.RaydioLogger
+import de.mycrocast.uefa.raydiosdk.example.livestream.play_state.data.MainPlayStateContainer
+import de.mycrocast.uefa.raydiosdk.example.livestream.play_state.domain.PlayStateContainer
 import javax.inject.Singleton
 
 /**
@@ -41,16 +42,16 @@ class ProvideModule {
 
     @Provides
     @Singleton
-    fun provideSDKCredentials(): RaydioSDKCredentials {
-        return object : RaydioSDKCredentials {
-            override val clubId: Long = 235617L
+    fun provideSDKCredentials(): PlayByEarSDKCredentials {
+        return object : PlayByEarSDKCredentials {
+            override val token: String = ""
         }
     }
 
     @Provides
     @Singleton
-    fun provideRaydioLogger(): RaydioLogger {
-        return object : RaydioLogger {
+    fun provideSDKLogger(): PlayByEarLogger {
+        return object : PlayByEarLogger {
             override fun info(tag: String, message: String) {
                 Log.i(tag, message)
             }
@@ -62,59 +63,39 @@ class ProvideModule {
             override fun error(tag: String, message: String, throwable: Throwable) {
                 Log.e(tag, message + ": ${throwable.message}")
             }
-
-            override fun interaction(interaction: RaydioInteraction) {
-                when (interaction) {
-                    is RaydioInteraction.StartPlayLivestream -> {
-                        // TODO add your google analytics: livestream play was started
-
-                        val userId = interaction.userId
-                        val streamId = interaction.livestreamId
-                        Log.i("RaydioInteraction", "User $userId starts playing livestream $streamId")
-                    }
-
-                    is RaydioInteraction.StopPlayLivestream -> {
-                        // TODO add your google analytics: livestream play was stopped
-
-                        val userId = interaction.userId
-                        val streamId = interaction.livestreamId
-                        Log.i("RaydioInteraction", "User $userId stops playing livestream $streamId")
-                    }
-                }
-            }
         }
     }
 
     @Provides
     @Singleton
-    fun provideRaydioSDK(
+    fun provideSDK(
         preferences: SharedPreferences,
-        credentials: RaydioSDKCredentials,
-        logger: RaydioLogger
-    ): RaydioSDK {
-        return RaydioSDKBuilder(credentials, preferences).setLogger(logger).build()
+        credentials: PlayByEarSDKCredentials,
+        logger: PlayByEarLogger
+    ): PlayByEarSDK {
+        return PlayByEarSDKBuilder(credentials, preferences, logger).build()
     }
 
     @Provides
     @Singleton
-    fun provideRaydioConnection(
-        sdk: RaydioSDK
-    ): RaydioConnection {
+    fun provideConnection(
+        sdk: PlayByEarSDK
+    ): PlayByEarConnection {
         return sdk.connection
     }
 
     @Provides
     @Singleton
     fun provideLivestreamLoader(
-        sdk: RaydioSDK
-    ): RaydioLivestreamLoader {
+        sdk: PlayByEarSDK
+    ): PlayByEarLivestreamLoader {
         return sdk.livestreamLoader
     }
 
     @Provides
     @Singleton
     fun provideLivestreamContainer(
-        sdk: RaydioSDK
+        sdk: PlayByEarSDK
     ): RaydioLivestreamGroupContainer {
         return sdk.livestreamGroupContainer
     }
@@ -122,8 +103,8 @@ class ProvideModule {
     @Provides
     @Singleton
     fun provideLivestreamPlayerFactory(
-        sdk: RaydioSDK
-    ): RaydioLivestreamPlayer.Factory {
+        sdk: PlayByEarSDK
+    ): PlayByEarLivestreamPlayer.Factory {
         return sdk.livestreamPlayerFactory
     }
 
