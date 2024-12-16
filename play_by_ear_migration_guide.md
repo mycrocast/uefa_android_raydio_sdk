@@ -212,3 +212,41 @@
 
 -> Careful, additional migration step needed:<br>
 Instead of having the 'streamId'-Property like in the old states RaydioLivestreamPlayer.PlayState.Connecting, RaydioLivestreamPlayer.PlayState.Playing and RaydioLivestreamPlayer.PlayState.Disconnected, the corresponding PlayStates of the new PlayByEarLivestreamPlayer are having the 'streamToken'-Property. (As both of them are of type string, no other adjustments should be needed.)
+
+### 2.7 RaydioLivestream
+- Replaced with new PlayByEarLivestream
+
+##### 2.7.2 Changes
+- The 'id' property is now called 'token'
+- The 'streamerId' property is now a Long instead of a String
+
+### 2.8 RaydioLivestreamGroupContainer
+The PlayByEar-SDK itself does not provide a container, in which the livestreams are grouped by the matchId and/or title anymore. Instead it now just provides the PlayByEarLivestreamContainer. In this container all currently active livestreams can be found. This also means that there are no RaydioLivestreamGroup anymore.
+
+So if you want to keep the grouping of livestreams in your application, you need to implement a corresponding LivestreamGroupContainer by yourself. (An example implementation can be found [here](https://github.com/mycrocast/uefa_android_raydio_sdk/tree/play_by_ear_migration/app/src/main/java/de/mycrocast/uefa/raydiosdk/example/livestream/group/domain))
+
+##### 2.8.1 Injection (via Dagger-Hilt)
+
+``` Before:
+    @Provides
+    @Singleton
+    fun provideLivestreamContainer(
+        sdk: PlayByEarSDK
+    ): RaydioLivestreamGroupContainer {
+        return sdk.livestreamGroupContainer
+    }
+```
+
+``` After:
+    @Provides
+    @Singleton
+    fun provideLivestreamContainer(
+        sdk: PlayByEarSDK
+    ): PlayByEarLivestreamContainer {
+        return sdk.livestreamContainer
+    }
+```
+
+##### 2.8.2 Usage
+- Either implement your own LivestreamGroup and LivestreamGroupContainer with the new PlayByEarLivestreamContainer as source of active livestreams or migrate your application to use the PlayByEarLivestreamContainer directly with PlayByEarLivestream (Both approaches can be found in the example application.)
+- Even if you reimplement the LivestreamGroupContainer please replace the calls of all 'find(streamerId)' from the RaydioLivestreamGroupContainer with the new PlayByEarLivestreamContainer function named 'findByStreamerId(streamerId)'
