@@ -14,7 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import de.mycrocast.uefa.raydiosdk.example.connection.ConnectingScreen
 import de.mycrocast.uefa.raydiosdk.example.connection.ConnectionFailedScreen
 import de.mycrocast.uefa.raydiosdk.example.connection.DisconnectedScreen
-import de.mycrocast.uefa.raydiosdk.example.livestream.list.LivestreamListScreen
+import de.mycrocast.uefa.raydiosdk.example.livestream.LivestreamListSelectionScreen
 import de.mycrocast.uefa.raydiosdk.example.ui.theme.RaydioSDKExampleTheme
 
 /**
@@ -54,7 +54,7 @@ fun MainScreen(viewModel: MainViewModel) {
             when (it) {
                 MainViewModel.Screen.CONNECTION_FAILED -> ConnectionFailedScreen()
                 MainViewModel.Screen.CONNECTING -> ConnectingScreen()
-                MainViewModel.Screen.LIVESTREAMS -> LivestreamListScreen()
+                MainViewModel.Screen.LIVESTREAMS -> LivestreamListSelectionScreen()
                 MainViewModel.Screen.DISCONNECTED -> DisconnectedScreen()
             }
         }

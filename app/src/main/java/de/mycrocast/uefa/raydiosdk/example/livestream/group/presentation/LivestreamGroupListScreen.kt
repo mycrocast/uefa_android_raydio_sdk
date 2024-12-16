@@ -1,4 +1,4 @@
-package de.mycrocast.uefa.raydiosdk.example.livestream.list
+package de.mycrocast.uefa.raydiosdk.example.livestream.group.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,14 +27,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LivestreamListScreen(
-    viewModel: LivestreamListViewModel = hiltViewModel()
+fun LivestreamGroupListScreen(
+    viewModel: LivestreamGroupListViewModel = hiltViewModel()
 ) {
     // current UIState, given by ViewModel
     val uiState = viewModel.uiState.collectAsState()
     val isLoading = uiState.value.isLoading
     val isRefreshing = uiState.value.isRefreshing
-    val livestreams = uiState.value.livestreams
+    val livestreamGroups = uiState.value.livestreamGroups
+    val bottomSheetState = uiState.value.bottomSheetState
     val playState = uiState.value.playState
 
     // current pull refresh state
@@ -58,18 +59,18 @@ fun LivestreamListScreen(
             onRefresh = viewModel::onRefreshList
         ) {
             LazyColumn(Modifier.fillMaxSize()) {
-                items(livestreams) { group ->
-                    LivestreamItem(
-                        livestream = group,
+                items(livestreamGroups) { group ->
+                    LivestreamGroupItem(
+                        livestreamGroup = group,
                         playState
                     ) {
-                        viewModel.onLivestreamClicked(group)
+                        viewModel.onLivestreamGroupClicked(group)
                     }
                 }
             }
         }
 
-        if (livestreams.isEmpty()) {
+        if (livestreamGroups.isEmpty()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -84,4 +85,11 @@ fun LivestreamListScreen(
             }
         }
     }
+
+    // Bottom sheet for user to select a livestream of a selected livestream group he wants to start playing.
+    LivestreamGroupBottomSheet(
+        bottomSheetState = bottomSheetState,
+        onLivestreamClicked = { viewModel.onLivestreamClicked(it) },
+        onDismiss = { viewModel.onBottomSheetDismissed() }
+    )
 }

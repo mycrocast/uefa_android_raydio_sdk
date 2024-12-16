@@ -1,4 +1,4 @@
-package de.mycrocast.uefa.raydiosdk.example.livestream.list
+package de.mycrocast.uefa.raydiosdk.example.livestream.group.presentation
 
 import android.content.Context
 import android.os.Build
@@ -7,8 +7,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import de.mycrocast.android.play_by_ear.sdk.core.domain.PlayByEarLivestream
-import de.mycrocast.android.play_by_ear.sdk.livestream.container.domain.PlayByEarLivestreamContainer
 import de.mycrocast.android.play_by_ear.sdk.livestream.loader.domain.PlayByEarLivestreamLoader
+import de.mycrocast.uefa.raydiosdk.example.livestream.group.domain.LivestreamGroup
+import de.mycrocast.uefa.raydiosdk.example.livestream.group.domain.LivestreamGroupContainer
 import de.mycrocast.uefa.raydiosdk.example.livestream.play_state.domain.PlayState
 import de.mycrocast.uefa.raydiosdk.example.livestream.play_state.domain.PlayStateContainer
 import de.mycrocast.uefa.raydiosdk.example.livestream.service.LivestreamPlayService
@@ -28,12 +29,30 @@ import javax.inject.Inject
  * @property context Used to start the foreground service for playing a livestream.
  */
 @HiltViewModel
-class LivestreamListViewModel @Inject constructor(
+class LivestreamGroupListViewModel @Inject constructor(
     private val loader: PlayByEarLivestreamLoader,
-    private val container: PlayByEarLivestreamContainer,
+    private val container: LivestreamGroupContainer,
     private val playStateContainer: PlayStateContainer,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
+
+    /**
+     * Represents the state the bottom sheet where the user can select a livestream to play.
+     */
+    sealed interface BottomSheetState {
+
+        /**
+         * No bottom sheet is displayed.
+         */
+        data object Hide : BottomSheetState
+
+        /**
+         * A bottom sheet is displayed.
+         *
+         * @property group The group in which the user can select a livestream of to play.
+         */
+        data class Show(val group: LivestreamGroup) : BottomSheetState
+    }
 
     /**
      * Represents the current state of the user interface
@@ -55,9 +74,14 @@ class LivestreamListViewModel @Inject constructor(
         val playState: PlayState? = null,
 
         /**
-         * Currently active livestreams
+         * Currently active groups of livestreams
          */
-        val livestreams: List<PlayByEarLivestream> = emptyList(),
+        val livestreamGroups: List<LivestreamGroup> = emptyList(),
+
+        /**
+         * Current state of the bottom sheet
+         */
+        val bottomSheetState: BottomSheetState = BottomSheetState.Hide
     )
 
     private val _uiState = MutableStateFlow(UIState())
@@ -67,9 +91,25 @@ class LivestreamListViewModel @Inject constructor(
         // collect changes of the currently active livestream groups
         viewModelScope.launch {
             container.online.collect { streams ->
+
+                // adjust bottom sheet according to changes:
+                // - if the bottom sheet is showing and the group was removed (because all of its livestreams ended), hide the bottom sheet
+                // - if the bottom sheet is showing and the currently active shown group has changed, update bottom sheet
+                var newSheetState: BottomSheetState = BottomSheetState.Hide
+                val sheetState = uiState.value.bottomSheetState
+                if (sheetState is BottomSheetState.Show) {
+                    val group = sheetState.group
+                    val updated = streams.find { it.title == group.title }
+                    if (updated != null) {
+                        newSheetState = BottomSheetState.Show(updated)
+                    }
+                }
+
+                // update ui state accordingly
                 _uiState.update {
                     it.copy(
-                        livestreams = streams,
+                        livestreamGroups = streams,
+                        bottomSheetState = newSheetState
                     )
                 }
             }
@@ -110,26 +150,46 @@ class LivestreamListViewModel @Inject constructor(
     }
 
     /**
-     * User selected a livestream to play or pause.
+     * User clicked on a livestream group.
+     *
+     * @param group The clicked group.
+     */
+    fun onLivestreamGroupClicked(group: LivestreamGroup) {
+        viewModelScope.launch {
+            // if we are currently playing a livestream of this group, the user wants to stop playing
+            val currentPlayState = uiState.value.playState
+            if (currentPlayState != null && group.livestreams.any { it.token == currentPlayState.streamToken }) {
+                context.stopService(LivestreamPlayService.stop(context))
+                return@launch
+            }
+
+            // else we show the bottom sheet where the user can select a livestream of this group to start playing
+            _uiState.update { it.copy(bottomSheetState = BottomSheetState.Show(group)) }
+        }
+    }
+
+    /**
+     * User dismissed the bottom sheet.
+     */
+    fun onBottomSheetDismissed() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(bottomSheetState = BottomSheetState.Hide) }
+        }
+    }
+
+    /**
+     * User selected a livestream in the bottom sheet to play.
      * Starts a new foreground service for playing and stops all previous play foreground services.
      *
-     * @param livestream The livestream to play or pause.
+     * @param livestream The livestream to play.
      */
     fun onLivestreamClicked(livestream: PlayByEarLivestream) {
-        // if we are currently playing this livestream, the user wants to stop playing
-        val currentPlayState = uiState.value.playState
-        if (currentPlayState != null && livestream.token == currentPlayState.streamToken) {
-            context.stopService(LivestreamPlayService.stop(context))
-            return
-        }
-
-        // if another livestream is currently connecting/playing/disconnected
-        // we need to stop the foreground service which stops the playing
+        // if a livestream is currently connecting/playing/disconnected, we need to stop the foreground service 8which stops the playing)
         if (uiState.value.playState != null) {
             context.stopService(LivestreamPlayService.stop(context))
         }
 
-        // start a new foreground service to start playing the selected livestream
+        // start a new foreground service zo start playing the selected livestream
         val intent = LivestreamPlayService.newInstance(context, livestream)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(intent)

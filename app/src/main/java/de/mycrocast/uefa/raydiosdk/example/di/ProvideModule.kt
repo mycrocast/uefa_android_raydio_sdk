@@ -12,12 +12,11 @@ import de.mycrocast.android.play_by_ear.sdk.connection.domain.PlayByEarConnectio
 import de.mycrocast.android.play_by_ear.sdk.core.data.PlayByEarSDKBuilder
 import de.mycrocast.android.play_by_ear.sdk.core.domain.PlayByEarSDK
 import de.mycrocast.android.play_by_ear.sdk.core.domain.PlayByEarSDKCredentials
+import de.mycrocast.android.play_by_ear.sdk.livestream.container.domain.PlayByEarLivestreamContainer
 import de.mycrocast.android.play_by_ear.sdk.livestream.loader.domain.PlayByEarLivestreamLoader
 import de.mycrocast.android.play_by_ear.sdk.livestream.player.domain.PlayByEarLivestreamPlayer
 import de.mycrocast.android.play_by_ear.sdk.logger.PlayByEarLogger
-import de.mycrocast.raydio.uefa.sdk.livestream.container.domain.RaydioLivestreamGroupContainer
-import de.mycrocast.raydio.uefa.sdk.livestream.loader.domain.RaydioLivestreamLoader
-import de.mycrocast.raydio.uefa.sdk.livestream.player.domain.RaydioLivestreamPlayer
+import de.mycrocast.uefa.raydiosdk.example.livestream.group.domain.LivestreamGroupContainer
 import de.mycrocast.uefa.raydiosdk.example.livestream.play_state.data.MainPlayStateContainer
 import de.mycrocast.uefa.raydiosdk.example.livestream.play_state.domain.PlayStateContainer
 import javax.inject.Singleton
@@ -44,7 +43,7 @@ class ProvideModule {
     @Singleton
     fun provideSDKCredentials(): PlayByEarSDKCredentials {
         return object : PlayByEarSDKCredentials {
-            override val token: String = ""
+            override val token: String = "1567504890375_8741a554-c25e-428f-a807-a69bac373315-9999"
         }
     }
 
@@ -96,8 +95,16 @@ class ProvideModule {
     @Singleton
     fun provideLivestreamContainer(
         sdk: PlayByEarSDK
-    ): RaydioLivestreamGroupContainer {
-        return sdk.livestreamGroupContainer
+    ): PlayByEarLivestreamContainer {
+        return sdk.livestreamContainer
+    }
+
+    @Provides
+    @Singleton
+    fun provideLivestreamGroupContainer(
+        container: PlayByEarLivestreamContainer
+    ) : LivestreamGroupContainer {
+        return LivestreamGroupContainer(container)
     }
 
     @Provides

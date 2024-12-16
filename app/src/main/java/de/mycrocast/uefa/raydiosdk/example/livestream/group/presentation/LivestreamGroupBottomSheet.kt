@@ -1,4 +1,4 @@
-package de.mycrocast.uefa.raydiosdk.example.livestream.list
+package de.mycrocast.uefa.raydiosdk.example.livestream.group.presentation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import de.mycrocast.raydio.uefa.sdk.livestream.domain.RaydioLivestream
+import de.mycrocast.android.play_by_ear.sdk.core.domain.PlayByEarLivestream
 import de.mycrocast.uefa.raydiosdk.example.R
 import kotlinx.coroutines.launch
 
@@ -35,9 +35,9 @@ import kotlinx.coroutines.launch
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RaydioLivestreamGroupBottomSheet(
-    bottomSheetState: LivestreamListViewModel.BottomSheetState,
-    onLivestreamClicked: (RaydioLivestream) -> Unit,
+fun LivestreamGroupBottomSheet(
+    bottomSheetState: LivestreamGroupListViewModel.BottomSheetState,
+    onLivestreamClicked: (PlayByEarLivestream) -> Unit,
     onDismiss: () -> Unit
 ) {
 
@@ -45,7 +45,7 @@ fun RaydioLivestreamGroupBottomSheet(
     val scope = rememberCoroutineScope()
 
     // show the bottom sheet only if in show state
-    if (bottomSheetState is LivestreamListViewModel.BottomSheetState.Show) {
+    if (bottomSheetState is LivestreamGroupListViewModel.BottomSheetState.Show) {
         ModalBottomSheet(
             onDismissRequest = { onDismiss() },
             sheetState = sheetState
@@ -53,7 +53,7 @@ fun RaydioLivestreamGroupBottomSheet(
             // display a RaydioLivestreamRow for each livestream
             Column(Modifier.padding(8.dp)) {
                 bottomSheetState.group.livestreams.forEach { stream ->
-                    RaydioLivestreamRow(stream) {
+                    LivestreamBottomSheetRow(stream) {
                         scope.launch { sheetState.hide() }.invokeOnCompletion {
                             if (!sheetState.isVisible) {
                                 onLivestreamClicked(stream)
@@ -81,13 +81,13 @@ fun RaydioLivestreamGroupBottomSheet(
  * @param onClick Invoked when the user clicked on this row.
  */
 @Composable
-fun RaydioLivestreamRow(
-    livestream: RaydioLivestream,
+fun LivestreamBottomSheetRow(
+    livestream: PlayByEarLivestream,
     onClick: () -> Unit
 ) {
     Card(
         onClick = { onClick.invoke() },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
         shape = CardDefaults.outlinedShape
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {

@@ -1,4 +1,4 @@
-package de.mycrocast.uefa.raydiosdk.example.livestream.list
+package de.mycrocast.uefa.raydiosdk.example.livestream.group.presentation
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,24 +17,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import de.mycrocast.android.play_by_ear.sdk.core.domain.PlayByEarLivestream
 import de.mycrocast.uefa.raydiosdk.example.R
+import de.mycrocast.uefa.raydiosdk.example.livestream.group.domain.LivestreamGroup
 import de.mycrocast.uefa.raydiosdk.example.livestream.play_state.domain.PlayState
 
 /**
- * Represents a livestream. Contains a PlayButton, which indicates the current play state:
+ * Represents a livestream group. Contains a PlayButton, which indicates the current play state:
  * - Not Playing -> Play Icon
  * - Connecting -> Loading animation
  * - Playing -> Stop Icon.
  *
- * @param livestream The PlayByEarLivestream to display.
+ * @param livestreamGroup The group of PlayByEarLivestreams to display.
  * @param playState The current play state.
  * @param onClick Action to invoke, when the item was clicked by the user.
  * @receiver
  */
 @Composable
-fun LivestreamItem(
-    livestream: PlayByEarLivestream,
+fun LivestreamGroupItem(
+    livestreamGroup: LivestreamGroup,
     playState: PlayState?,
     onClick: () -> Unit
 ) {
@@ -50,17 +50,17 @@ fun LivestreamItem(
                 .padding(8.dp)
         ) {
 
-            // do we have an active play state for this livestream?
-            if (playState != null && livestream.token == playState.streamToken) {
+            // do we have a active play state for a livestream of our group?
+            if (playState != null && livestreamGroup.livestreams.any { it.token == playState.streamToken }) {
 
-                // are we currently connecting to this livestream?
+                // are we currently connecting to a livestream of this group?
                 if (playState is PlayState.Connecting) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(48.dp)
                     )
                 }
 
-                // are we currently playing this livestream?
+                // are we currently playing a livestream of this group?
                 if (playState is PlayState.Playing) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_stop_play),
@@ -69,7 +69,7 @@ fun LivestreamItem(
                     )
                 }
             } else {
-                // this livestream is not our currently connecting/playing stream (if any)
+                // we have either currently no connecting/playing livestream or the on which is connecting/playing is of another group.
                 Icon(
                     painter = painterResource(id = R.drawable.ic_start_play),
                     modifier = Modifier.size(48.dp),
@@ -87,7 +87,7 @@ fun LivestreamItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                text = livestream.title
+                text = livestreamGroup.title
             )
         }
     }

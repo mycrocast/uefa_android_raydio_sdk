@@ -15,10 +15,10 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import de.mycrocast.android.play_by_ear.sdk.connection.domain.PlayByEarConnection
+import de.mycrocast.android.play_by_ear.sdk.core.domain.PlayByEarLivestream
+import de.mycrocast.android.play_by_ear.sdk.livestream.container.domain.PlayByEarLivestreamContainer
 import de.mycrocast.android.play_by_ear.sdk.livestream.loader.domain.PlayByEarLivestreamLoader
 import de.mycrocast.android.play_by_ear.sdk.livestream.player.domain.PlayByEarLivestreamPlayer
-import de.mycrocast.raydio.uefa.sdk.livestream.container.domain.RaydioLivestreamGroupContainer
-import de.mycrocast.raydio.uefa.sdk.livestream.domain.RaydioLivestream
 import de.mycrocast.uefa.raydiosdk.example.livestream.play_state.domain.PlayStateContainer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +42,7 @@ class LivestreamPlayService : Service() {
         /**
          * Used to store & restore identifier of the livestream in the intent-bundle of this service.
          */
-        private const val LIVESTREAM_ID = "livestream_id"
+        private const val LIVESTREAM_TOKEN = "livestream_token"
 
         /**
          * Used to store & restore identifier of the streamer in the intent-bundle of this service.
@@ -95,9 +95,9 @@ class LivestreamPlayService : Service() {
          * @param context Context from which the foreground service will be started.
          * @param livestream The specific livestream to play.
          */
-        fun newInstance(context: Context, livestream: RaydioLivestream): Intent {
+        fun newInstance(context: Context, livestream: PlayByEarLivestream): Intent {
             val result = Intent(context, LivestreamPlayService::class.java)
-            result.putExtra(LIVESTREAM_ID, livestream.id)
+            result.putExtra(LIVESTREAM_TOKEN, livestream.token)
             result.putExtra(LIVESTREAM_BROADCASTER_ID, livestream.streamerId)
             result.putExtra(LIVESTREAM_TITLE, livestream.title)
             result.putExtra(LIVESTREAM_LANGUAGE, livestream.language.native)
@@ -118,7 +118,7 @@ class LivestreamPlayService : Service() {
     lateinit var connection: PlayByEarConnection
 
     @Inject
-    lateinit var streamContainer: RaydioLivestreamGroupContainer
+    lateinit var streamContainer: PlayByEarLivestreamContainer
 
     @Inject
     lateinit var playStateContainer: PlayStateContainer
@@ -174,7 +174,7 @@ class LivestreamPlayService : Service() {
     /**
      * Identifier of the streamer of the livestream.
      */
-    private lateinit var streamerId: String
+    private var streamerId: Long = -1
 
     /**
      * Has client lost connection?
@@ -240,7 +240,7 @@ class LivestreamPlayService : Service() {
                     // we need to make sure that we refresh the list of currently active livestreams,
                     // because in the time we were disconnected, the stream could have changed or (even worse) was stopped by the streamer in the meantime
                     if (streamLoader.load()) {
-                        val stream = streamContainer.find(streamerId).first()
+                        val stream = streamContainer.findByStreamerId(streamerId).first()
                         if (stream == null) { // stream was ended -> handle like the streamer lost the connection
                             if (!isStreamerConnectionLost) {
                                 isStreamerConnectionLost = true
@@ -250,7 +250,7 @@ class LivestreamPlayService : Service() {
                         }
 
                         // stream has not ended, start playing with "refreshed" stream
-                        player.play(stream!!.id)
+                        player.play(stream!!.token)
                         return@collect
                     }
 
@@ -299,14 +299,14 @@ class LivestreamPlayService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val streamId = intent?.getStringExtra(LIVESTREAM_ID)
-        if (streamId == null) { // check for invalid streamId
+        val streamToken = intent?.getStringExtra(LIVESTREAM_TOKEN)
+        if (streamToken == null) { // check for invalid streamId
             onConnectionFailed()
             return START_NOT_STICKY
         }
 
-        val streamerId = intent.getStringExtra(LIVESTREAM_BROADCASTER_ID)
-        if (streamerId == null) { // check for invalid streamerId
+        val streamerId = intent.getLongExtra(LIVESTREAM_BROADCASTER_ID, -1L)
+        if (streamerId < 0) { // check for invalid streamerId
             onConnectionFailed()
             return START_NOT_STICKY
         }
@@ -318,7 +318,7 @@ class LivestreamPlayService : Service() {
 
         // collect updates for the specific livestream
         observeLivestream = ioScope.launch {
-            streamContainer.find(streamerId).collect {
+            streamContainer.findByStreamerId(streamerId).collect {
                 if (it == null) { // streamer ended the livestream or lost their connection
                     if (!isStreamerConnectionLost) {
                         isStreamerConnectionLost = true
@@ -364,7 +364,7 @@ class LivestreamPlayService : Service() {
                     is PlayByEarLivestreamPlayer.PlayState.Closed -> {
                         // was the player closed because either the client or the streamer lost their connection?
                         if (isClientConnectionLost || isStreamerConnectionLost) {
-                            playStateContainer.onDisconnect(streamId)
+                            playStateContainer.onDisconnect(streamToken)
                             return@collect
                         }
 
@@ -375,7 +375,7 @@ class LivestreamPlayService : Service() {
         }
 
         // start the playing process of the livestream
-        player.play(streamId)
+        player.play(streamToken)
 
         // create the foreground notification
         val title = intent.getStringExtra(LIVESTREAM_TITLE) ?: ""
@@ -410,7 +410,7 @@ class LivestreamPlayService : Service() {
      *
      * @param stream Their new livestream.
      */
-    private fun onStreamerConnectionReestablished(stream: RaydioLivestream) {
+    private fun onStreamerConnectionReestablished(stream: PlayByEarLivestream) {
         // cancel the stop service timer
         stopServiceDueToConnectionIssue?.cancel()
 
@@ -418,7 +418,7 @@ class LivestreamPlayService : Service() {
         notificationManager.cancel(REMOTE_CONNECTION_LOST_NOTIFICATION_ID)
 
         // start playing their new livestream
-        player.play(stream.id)
+        player.play(stream.token)
     }
 
     /**
@@ -446,7 +446,7 @@ class LivestreamPlayService : Service() {
      *
      * @param livestream The updated livestream which information to display in the notification.
      */
-    private fun updateLivestreamNotification(livestream: RaydioLivestream) {
+    private fun updateLivestreamNotification(livestream: PlayByEarLivestream) {
         if (checkPostNotificationPermission()) {
             val notification = notificationBuilder.createLivestreamNotification(
                 livestream.title,
